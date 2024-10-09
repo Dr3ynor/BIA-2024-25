@@ -1,11 +1,7 @@
-DONE list values a parameterů
-
-
-DONE hodit celý main do while loopu
-
-DONE zobrazit best bod -> ptm udělat animaci 
-
 předávat search_range každé funkci zvlášť
 
+Griewank nefunguje
+Schwefel nefunguje
 
-FIX RASTRIGIN
+Levy se plotují blbě body
+Zakharov se plotují blbě body

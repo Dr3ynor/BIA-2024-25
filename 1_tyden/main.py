@@ -4,7 +4,7 @@ from solution import Solution
 from constants import constants
 
 def get_function_choice():
-    print("Available functions:\n1. Sphere\n2. Ackley\n3. Rasstrigin\n4. Rosenbrock\n5. Griewank\n6. Schwefel\n7. Levy\n8. Michalewicz\n9. Zakharov\n")
+    print("Available functions:\n1. Sphere\n2. Ackley\n3. Rastrigin\n4. Rosenbrock\n5. Griewank\n6. Schwefel\n7. Levy\n8. Michalewicz\n9. Zakharov\n")
     while True:
         try:
             function_number = int(input("Select Function:"))
@@ -19,7 +19,7 @@ def main():
         function_number = get_function_choice()
         function_name = constants.FUNCTION_NAMES[function_number]
         function = Function(function_name)
-        precision = 50
+        precision = 100
         x, y, z = function.init_grid(precision)
 
         function_to_evaluate = getattr(function, function_name.lower())
@@ -29,7 +29,7 @@ def main():
         print(f"Searched range of {function_to_evaluate}: {search_range}")
         iterations = 1000
 
-        best_params, best_values, all_params, all_values = function.blind_search(search_range, iterations, function_to_evaluate)        
+        best_params, best_values = function.blind_search(search_range, iterations, function_to_evaluate)        
         
         function.plot_function(x, y, z, best_params, best_values)
 

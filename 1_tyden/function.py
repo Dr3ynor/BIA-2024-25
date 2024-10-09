@@ -64,7 +64,7 @@ class Function:
         
         # print(f"Best value: {best_value}\n\nBest parameters: {best_param}\n\n\n")
         # print(f"Best values: {best_values}\n\nBest parameters: {best_params}\n\n\n")
-        return best_params, best_values, all_params, all_values
+        return best_params, best_values
 
     def sphere(self,params):
         sum = 0
@@ -88,13 +88,13 @@ class Function:
         y = params[1]
         return (1-x)**2 + 100*(y-x**2)**2
     
-    def griewank(self,params):
-        sum = 0
-        prod = 1
+    def griewank(self, params):
+        sum_part = 0
+        prod_part = 1
         for i in range(len(params)):
-            sum += params[i]**2
-            prod *= np.cos(params[i]/np.sqrt(i+1))
-        return 1 + sum/4000 - prod
+            sum_part += params[i]**2
+            prod_part *= np.cos(params[i] / np.sqrt(i + 1))
+        return 1 + (sum_part / 4000) - prod_part
     
     def schwefel(self, x):
         return 418.9829 * len(x) - np.sum(x * np.sin(np.sqrt(np.abs(x))))
@@ -107,12 +107,12 @@ class Function:
         y = params[1]
         return np.sin(3*np.pi*x)**2 + (x-1)**2*(1 + np.sin(3*np.pi*y)**2) + (y-1)**2*(1 + np.sin(2*np.pi*y)**2)
     
-    def michalewicz(self,params):
-        sum = 0
+    def michalewicz(self, params, m=10):
+        sum_part = 0
         for i in range(len(params)):
-            sum += np.sin(params[i])*np.sin((i+1)*params[i]**2/np.pi)**20
-        return -sum
-    
+            sum_part += np.sin(params[i]) * (np.sin(((i + 1) * params[i]**2) / np.pi))**(2 * m)
+        return -sum_part
+        
     def zakharov(self,params):
         sum1 = 0
         sum2 = 0
