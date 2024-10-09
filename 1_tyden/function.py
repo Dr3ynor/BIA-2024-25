@@ -4,7 +4,7 @@ import matplotlib as mpl
 class Function:
     def __init__(self,name):
         self.name = name
-
+        print(f"Function: {self.name}")
     def init_grid(self,precision):
         x = np.linspace(-5, 5,precision)
         y = np.linspace(-5, 5, precision)
@@ -21,25 +21,31 @@ class Function:
     def plot_function(self, x, y, z, best_params=None, best_values=None):
         fig = plt.figure()
         ax = fig.add_subplot(111, projection='3d')
+
+        # Optionally apply logarithmic scale to the Z values for Zakharov
+        if self.name.lower() == 'zakharov':
+            z = np.log1p(z)  # Apply logarithmic scale to the surface values
+            best_values = np.log1p(best_values)  # Adjust search points to match log scale
         
         # Plot the surface of the function
         ax.plot_surface(x, y, z, cmap='viridis', alpha=0.8)
         
         # Plot red points one by one (if provided)
         if best_params is not None and best_values is not None:
-            # print(f"\n\n Length values: {len(best_values)}\n\n Length parameters: {len(best_params)}")
-
             best_params = np.array(best_params)
+            
+            # Plot the search points as red dots at the correct Z value
             for i in range(len(best_values)):
-                ax.scatter(best_params[i, 0], best_params[i, 1], best_values[i], color='red', s=50, label='Search Points' if i == 0 else "")
-                plt.pause(1.0)  # Pause to visualize the progress
-        
+                z_val = best_values[i]  # Correct Z-coordinate of the point
+                ax.scatter(best_params[i, 0], best_params[i, 1], z_val, color='red', s=100, label='Search Points' if i == 0 else "")
+                plt.pause(1.0)
         ax.set_xlabel('X')
         ax.set_ylabel('Y')
         ax.set_zlabel(f'{self.name} Function Value')
         ax.set_title(f'{self.name} Function Plot')
         ax.legend()
         plt.show()
+
 
 
 
@@ -62,7 +68,7 @@ class Function:
                 best_params.append(params)
                 best_values.append(value)
         
-        # print(f"Best value: {best_value}\n\nBest parameters: {best_param}\n\n\n")
+        print(f"Best value: {best_value}\n\nBest parameters: {best_param}\n\n\n")
         # print(f"Best values: {best_values}\n\nBest parameters: {best_params}\n\n\n")
         return best_params, best_values
 

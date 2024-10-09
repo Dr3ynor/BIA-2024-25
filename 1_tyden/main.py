@@ -19,7 +19,7 @@ def main():
         function_number = get_function_choice()
         function_name = constants.FUNCTION_NAMES[function_number]
         function = Function(function_name)
-        precision = 100
+        precision = 30
         x, y, z = function.init_grid(precision)
 
         function_to_evaluate = getattr(function, function_name.lower())
