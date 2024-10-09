@@ -1,16 +1,16 @@
 import numpy as np
 import matplotlib.pyplot as plt
-
+import matplotlib as mpl
 class Function:
     def __init__(self,name):
         self.name = name
 
     def init_grid(self):
-        x = np.linspace(-5, 5, 100)
-        y = np.linspace(-5, 5, 100)
+        x = np.linspace(-5, 5,25)
+        y = np.linspace(-5, 5, 25)
         x, y = np.meshgrid(x, y)
         z = np.zeros_like(x)
-        return x,y,z
+        return x, y, z
 
     def evaluate_grid(self, x, y, z, func):
         for i in range(x.shape[0]):
@@ -18,27 +18,53 @@ class Function:
                 z[i, j] = func([x[i, j], y[i, j]])
         return z
 
-    def plot_function(self,x,y,z):
+    def plot_function(self, x, y, z, best_params=None, best_values=None):
         fig = plt.figure()
         ax = fig.add_subplot(111, projection='3d')
-        ax.plot_surface(x, y, z, cmap='viridis')
+        
+        # Plot the surface of the function
+        ax.plot_surface(x, y, z, cmap='viridis', alpha=0.8)
+        
+        # Plot red points one by one (if provided)
+        if best_params is not None and best_values is not None:
+            # print(f"\n\n Length values: {len(best_values)}\n\n Length parameters: {len(best_params)}")
+
+            best_params = np.array(best_params)
+            for i in range(len(best_values)):
+                ax.scatter(best_params[i, 0], best_params[i, 1], best_values[i], color='red', s=50, label='Search Points' if i == 0 else "")
+                plt.pause(1.0)  # Pause to visualize the progress
+        
         ax.set_xlabel('X')
         ax.set_ylabel('Y')
         ax.set_zlabel(f'{self.name} Function Value')
         ax.set_title(f'{self.name} Function Plot')
+        ax.legend()
         plt.show()
 
+
+
     def blind_search(self,search_range, iterations, func):
-        best_params = None
+        best_param = None
+        best_params = []
         best_value = np.inf
+        best_values = []
+        all_params = []
+        all_values = []
+        
         for i in range(iterations):
             params = np.random.uniform(search_range[0], search_range[1], 2)
             value = func(params)
+            all_params.append(params)
+            all_values.append(value)
             if value < best_value:
                 best_value = value
-                best_params = params
-        return best_params, best_value
-
+                best_param = params
+                best_params.append(params)
+                best_values.append(value)
+        
+        # print(f"Best value: {best_value}\n\nBest parameters: {best_param}\n\n\n")
+        # print(f"Best values: {best_values}\n\nBest parameters: {best_params}\n\n\n")
+        return best_params, best_values, all_params, all_values
 
     def sphere(self,params):
         sum = 0
