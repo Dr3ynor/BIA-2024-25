@@ -6,4 +6,3 @@ class Solution:
         self.uB = upper_bound
         self.parameters = np.zeros(self.d) #solution parameters
         self.f = np.inf # objective function evaluation
-        

@@ -28,6 +28,18 @@ class Function:
         ax.set_title(f'{self.name} Function Plot')
         plt.show()
 
+    def blind_search(self,search_range, iterations, func):
+        best_params = None
+        best_value = np.inf
+        for i in range(iterations):
+            params = np.random.uniform(search_range[0], search_range[1], 2)
+            value = func(params)
+            if value < best_value:
+                best_value = value
+                best_params = params
+        return best_params, best_value
+
+
     def sphere(self,params):
         sum = 0
         for p in params:
@@ -58,12 +70,12 @@ class Function:
             prod *= np.cos(params[i]/np.sqrt(i+1))
         return 1 + sum/4000 - prod
     
-    def schwefel(self,params):
-        sum = 0
-        for p in params:
-            sum += p*np.sin(np.sqrt(np.abs(p)))
-        return 418.9829*len(params) - sum
-    
+    def schwefel(self, x):
+        return 418.9829 * len(x) - np.sum(x * np.sin(np.sqrt(np.abs(x))))
+
+        
+
+
     def levy(self,params):
         x = params[0]
         y = params[1]
