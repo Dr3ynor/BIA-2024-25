@@ -5,7 +5,7 @@ class constants:
     SCHWEFEL_RANGE = [-500, 500]
     RASTRIGIN_RANGE = [-5.12, 5.12]
     ROSENBROCK_RANGE = [-2, 2]
-    GRIEWANGK_RANGE = [-600, 600]
+    GRIEWANK_RANGE = [-600, 600]
     LEVY_RANGE = [-10, 10]
     MICHALEWICZ_RANGE = [0, np.pi]
     ZAKHAROV_RANGE = [-10, 10]

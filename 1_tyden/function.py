@@ -5,9 +5,9 @@ class Function:
     def __init__(self,name):
         self.name = name
 
-    def init_grid(self):
-        x = np.linspace(-5, 5,25)
-        y = np.linspace(-5, 5, 25)
+    def init_grid(self,precision):
+        x = np.linspace(-5, 5,precision)
+        y = np.linspace(-5, 5, precision)
         x, y = np.meshgrid(x, y)
         z = np.zeros_like(x)
         return x, y, z
@@ -77,7 +77,7 @@ class Function:
         y = params[1]
         return -20*np.exp(-0.2*np.sqrt(0.5*(x**2 + y**2))) - np.exp(0.5*(np.cos(2*np.pi*x) + np.cos(2*np.pi*y))) + np.e + 20
     
-    def rasstrigin(self,params):
+    def rastrigin(self,params):
         sum = 0
         for p in params:
             sum += p**2 - 10*np.cos(2*np.pi*p) + 10
