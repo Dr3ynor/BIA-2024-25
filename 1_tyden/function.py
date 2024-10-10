@@ -32,7 +32,7 @@ class Function:
             # Plot the search points as red dots at the correct Z value
             for i in range(len(best_values)):
                 z_val = best_values[i]  # Correct Z-coordinate of the point
-                ax.scatter(best_params[i, 0], best_params[i, 1], z_val, color='red', s=10, label='Search Points' if i == 0 else "")
+                ax.scatter(best_params[i, 0], best_params[i, 1], z_val, color='red', s=100, label='Search Points' if i == 0 else "")
                 plt.pause(1.0)
         ax.set_xlabel('X')
         ax.set_ylabel('Y')
