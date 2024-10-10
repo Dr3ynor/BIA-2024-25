@@ -1,6 +1,6 @@
 import numpy as np
 class constants:
-    PRECISION = 50
+    PRECISION = 100
     ITERATIONS = 1000
 
     SPHERE_RANGE = [-5.12, 5.12]

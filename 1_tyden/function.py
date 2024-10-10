@@ -1,6 +1,6 @@
 import numpy as np
-import matplotlib.pyplot as plt
-import matplotlib as mpl
+import plotly.graph_objects as go
+
 class Function:
     def __init__(self,name):
         self.name = name
@@ -19,11 +19,9 @@ class Function:
         return z
 
     def plot_function(self, x, y, z, best_params=None, best_values=None):
-        fig = plt.figure()
-        ax = fig.add_subplot(111, projection='3d')
-        
+        fig = go.Figure()
         # Plot the surface of the function
-        ax.plot_surface(x, y, z, cmap='viridis', alpha=1.0)
+        fig.add_trace(go.Surface(z=z, x=x, y=y, colorscale='Viridis', opacity=0.8))
         
         # Plot red points one by one (if provided)
         if best_params is not None and best_values is not None:
@@ -32,16 +30,25 @@ class Function:
             # Plot the search points as red dots at the correct Z value
             for i in range(len(best_values)):
                 z_val = best_values[i]  # Correct Z-coordinate of the point
-                ax.scatter(best_params[i, 0], best_params[i, 1], z_val, color='red', s=100, label='Search Points' if i == 0 else "")
-                plt.pause(1.0)
-        ax.set_xlabel('X')
-        ax.set_ylabel('Y')
-        ax.set_zlabel(f'{self.name} Function Value')
-        ax.set_title(f'{self.name} Function Plot')
-        ax.legend()
-        plt.show()
-
-
+                fig.add_trace(go.Scatter3d(
+                    x=[best_params[i, 0]], 
+                    y=[best_params[i, 1]], 
+                    z=[z_val], 
+                    mode='markers',
+                    marker=dict(size=5, color='red'),
+                    name='Search Points' if i == 0 else ""
+                ))
+        
+        fig.update_layout(
+            scene=dict(
+                xaxis_title='X',
+                yaxis_title='Y',
+                zaxis_title=f'{self.name} Function Value'
+            ),
+            title=f'{self.name} Function Plot'
+        )
+        
+        fig.show()
 
 
     def blind_search(self,search_range, iterations, func):
