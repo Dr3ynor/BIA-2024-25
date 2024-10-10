@@ -3,6 +3,7 @@ předávat search_range každé funkci zvlášť
 Griewank nefunguje
 Schwefel nefunguje
 
-Levy se plotují blbě body
 Zakharov se plotují blbě body
 TODO: dát chatovi zakharova z té stránky
+TODO: zkusit dát místo precision range těch funkcí
+

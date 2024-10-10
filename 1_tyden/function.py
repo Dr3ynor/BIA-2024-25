@@ -5,9 +5,9 @@ class Function:
     def __init__(self,name):
         self.name = name
         print(f"Function: {self.name}")
-    def init_grid(self,precision):
-        x = np.linspace(-5, 5,precision)
-        y = np.linspace(-5, 5, precision)
+    def init_grid(self,precision,range):
+        x = np.linspace(range[0], range[1],precision)
+        y = np.linspace(range[0], range[1], precision)
         x, y = np.meshgrid(x, y)
         z = np.zeros_like(x)
         return x, y, z
@@ -21,14 +21,9 @@ class Function:
     def plot_function(self, x, y, z, best_params=None, best_values=None):
         fig = plt.figure()
         ax = fig.add_subplot(111, projection='3d')
-
-        # Optionally apply logarithmic scale to the Z values for Zakharov
-        if self.name.lower() == 'zakharov':
-            z = np.log1p(z)  # Apply logarithmic scale to the surface values
-            best_values = np.log1p(best_values)  # Adjust search points to match log scale
         
         # Plot the surface of the function
-        ax.plot_surface(x, y, z, cmap='viridis', alpha=0.8)
+        ax.plot_surface(x, y, z, cmap='viridis', alpha=1.0)
         
         # Plot red points one by one (if provided)
         if best_params is not None and best_values is not None:
@@ -37,7 +32,7 @@ class Function:
             # Plot the search points as red dots at the correct Z value
             for i in range(len(best_values)):
                 z_val = best_values[i]  # Correct Z-coordinate of the point
-                ax.scatter(best_params[i, 0], best_params[i, 1], z_val, color='red', s=100, label='Search Points' if i == 0 else "")
+                ax.scatter(best_params[i, 0], best_params[i, 1], z_val, color='red', s=10, label='Search Points' if i == 0 else "")
                 plt.pause(1.0)
         ax.set_xlabel('X')
         ax.set_ylabel('Y')
@@ -118,7 +113,8 @@ class Function:
         for i in range(len(params)):
             sum_part += np.sin(params[i]) * (np.sin(((i + 1) * params[i]**2) / np.pi))**(2 * m)
         return -sum_part
-        
+
+  
     def zakharov(self,params):
         sum1 = 0
         sum2 = 0

@@ -1,6 +1,4 @@
-import numpy as np
 from function import Function
-from solution import Solution
 from constants import constants
 
 def get_function_choice():
@@ -18,18 +16,15 @@ def main():
     while True:
         function_number = get_function_choice()
         function_name = constants.FUNCTION_NAMES[function_number]
+        search_range = getattr(constants, f"{function_name.upper()}_RANGE")
+        print(f"Searched range:{search_range}")
         function = Function(function_name)
-        precision = 30
-        x, y, z = function.init_grid(precision)
+        x, y, z = function.init_grid(constants.PRECISION,search_range)
 
         function_to_evaluate = getattr(function, function_name.lower())
         z = function.evaluate_grid(x, y, z, function_to_evaluate)
 
-        search_range = getattr(constants, f"{function_name.upper()}_RANGE")
-        print(f"Searched range of {function_to_evaluate}: {search_range}")
-        iterations = 1000
-
-        best_params, best_values = function.blind_search(search_range, iterations, function_to_evaluate)        
+        best_params, best_values = function.blind_search(search_range, constants.ITERATIONS, function_to_evaluate)        
         
         function.plot_function(x, y, z, best_params, best_values)
 
