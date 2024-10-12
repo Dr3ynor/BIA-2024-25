@@ -13,10 +13,25 @@ def get_function_choice():
         except ValueError as e:
             print(f"Error: {e}")
 
+
+def get_algorithm_choice():
+    print("Available algorithms:\n1. Blind Search\n2. Hill Climbing\n")
+    while True:
+        try:
+            algorithm_number = int(input("Select Algorithm:"))
+            if algorithm_number not in range(1, 3):
+                raise ValueError("Invalid algorithm number")
+            return algorithm_number
+        except ValueError as e:
+            print(f"Error: {e}")
+
+
 # Hlavní funkce - uživatel vybere, kterou funkci chce zobrazit, provede se náhodné hledání nejlepších parametrů a zobrazí se graf do té doby, než uživatel zvolí ukončení
 def main():
     while True:
         function_number = get_function_choice()
+        algorithm_choice = get_algorithm_choice()
+
         function_name = constants.FUNCTION_NAMES[function_number]
         search_range = getattr(constants, f"{function_name.upper()}_RANGE")
         print(f"Searched range:{search_range}")
@@ -26,7 +41,11 @@ def main():
         function_to_evaluate = getattr(function, function_name.lower())
         z = function.evaluate_grid(x, y, z, function_to_evaluate)
 
-        best_params, best_values = function.blind_search(search_range, constants.ITERATIONS, function_to_evaluate)        
+
+        if algorithm_choice == 1:
+            best_params, best_values = function.blind_search(search_range, constants.ITERATIONS, function_to_evaluate)
+        elif algorithm_choice == 2:
+            best_params, best_values = function.hill_climbing(search_range, constants.STEP, function_to_evaluate)
         
         function.plot_function(x, y, z, best_params, best_values)
 

@@ -1,10 +1,11 @@
 import numpy as np
 import plotly.graph_objects as go
-
+import time
 class Function:
     def __init__(self,name):
         self.name = name
         print(f"Function: {self.name}")
+
     # Zobrazení gridu (bez funkce a bez vyhodnocení)
     def init_grid(self,precision,range):
         x = np.linspace(range[0], range[1],precision)
@@ -12,17 +13,19 @@ class Function:
         x, y = np.meshgrid(x, y)
         z = np.zeros_like(x)
         return x, y, z
+    
     # Vyhodnocení gridu
     def evaluate_grid(self, x, y, z, func):
         for i in range(x.shape[0]):
             for j in range(x.shape[1]):
                 z[i, j] = func([x[i, j], y[i, j]])
         return z
+    
     # Vykreslení funkce, pokud jsou zadány nejlepší parametry a hodnoty, tak je zobrazí
     def plot_function(self, x, y, z, best_params=None, best_values=None):
         fig = go.Figure()
         # Vykreslí povrch funkce
-        fig.add_trace(go.Surface(z=z, x=x, y=y, colorscale='Viridis', opacity=0.8))
+        fig.add_trace(go.Surface(z=z, x=x, y=y, colorscale='Viridis', opacity=0.9))
         
         # Pokud jsou funkci předány i body, tak je zobrazí
         if best_params is not None and best_values is not None:
@@ -37,7 +40,7 @@ class Function:
                         y=[best_params[i, 1]], 
                         z=[z_val], 
                         mode='markers',
-                        marker=dict(size=7, color='yellow'),
+                        marker=dict(size=10, color='cyan'),
                         name='Best Point' if i == 0 else ""
                     ))
                 else:
@@ -59,6 +62,45 @@ class Function:
             title=f'{self.name} Function Plot'
         )
         fig.show()
+
+    def hill_climbing(self, search_range, step, func, tolerance=1):
+            params = np.random.uniform(search_range[0], search_range[1], 2)
+            best_value = func(params)
+            best_params = params
+            best_params_list = [params]
+            best_values_list = [best_value]
+            
+            while True:
+                neighbors = self.generate_neighbors(params, step)
+                improved = False
+                for neighbor in neighbors:
+                    value = func(neighbor)
+                    if value < best_value:
+                        best_value = value
+                        best_params = neighbor
+                        best_params_list.append(neighbor)
+                        best_values_list.append(value)
+                        improved = True
+                
+                if not improved or np.abs(func(params) - best_value) < tolerance:
+                    break
+                
+                params = best_params
+            
+            print(f"Best value: {best_value}\n\nBest parameters: {best_params}\n\n\n")
+            return best_params_list, best_values_list
+
+    def generate_neighbors(self, params, step):
+        neighbors = []
+        for i in range(len(params)):
+            for delta in [-step, step]:
+                neighbor = np.copy(params)
+                neighbor[i] += delta
+                neighbors.append(neighbor)
+        return neighbors
+
+
+
 
     # Blind search - náhodné hledání nejlepších parametrů
     def blind_search(self,search_range, iterations, func):
