@@ -5,6 +5,18 @@ class Function:
     def __init__(self,name):
         self.name = name
         print(f"Function: {self.name}")
+
+    def get_function_choice():
+        print("Available functions:\n1. Sphere\n2. Ackley\n3. Rastrigin\n4. Rosenbrock\n5. Griewank\n6. Schwefel\n7. Levy\n8. Michalewicz\n9. Zakharov\n")
+        while True:
+            try:
+                function_number = int(input("Select Function:"))
+                if function_number not in range(1, 10):
+                    raise ValueError("Invalid function number")
+                return function_number
+            except ValueError as e:
+                print(f"Error: {e}")
+
     def init_grid(self,precision,range):
         x = np.linspace(range[0], range[1],precision)
         y = np.linspace(range[0], range[1], precision)
@@ -23,19 +35,29 @@ class Function:
         # Plot the surface of the function
         fig.add_trace(go.Surface(z=z, x=x, y=y, colorscale='Viridis', opacity=0.8))
         
-        # Plot red points one by one (if provided)
+        # Plot red points
         if best_params is not None and best_values is not None:
             best_params = np.array(best_params)
             
             # Plot the search points as red dots at the correct Z value
             for i in range(len(best_values)):
-                z_val = best_values[i]  # Correct Z-coordinate of the point
-                fig.add_trace(go.Scatter3d(
+                z_val = best_values[i]
+                if i == len(best_values)-1:
+                    fig.add_trace(go.Scatter3d(
+                        x=[best_params[i, 0]], 
+                        y=[best_params[i, 1]], 
+                        z=[z_val], 
+                        mode='markers',
+                        marker=dict(size=7, color='yellow'),
+                        name='Best Point' if i == 0 else ""
+                    ))
+                else:
+                    fig.add_trace(go.Scatter3d(
                     x=[best_params[i, 0]], 
                     y=[best_params[i, 1]], 
                     z=[z_val], 
                     mode='markers',
-                    marker=dict(size=5, color='red'),
+                    marker=dict(size=7, color='red'),
                     name='Search Points' if i == 0 else ""
                 ))
         
@@ -47,9 +69,7 @@ class Function:
             ),
             title=f'{self.name} Function Plot'
         )
-        
         fig.show()
-
 
     def blind_search(self,search_range, iterations, func):
         best_param = None
@@ -80,11 +100,18 @@ class Function:
             sum += p**2
         return sum
     
-    def ackley(self,params):
-        x = params[0]
-        y = params[1]
-        return -20*np.exp(-0.2*np.sqrt(0.5*(x**2 + y**2))) - np.exp(0.5*(np.cos(2*np.pi*x) + np.cos(2*np.pi*y))) + np.e + 20
+    def ackley(self, params, a=20, b=0.2, c=2 * np.pi):
+        params = np.array(params)
+        d = len(params)
+        
+        sum1 = np.sum(np.square(params))
+        sum2 = np.sum(np.cos(c * params))
+        
+        term1 = -a * np.exp(-b * np.sqrt(sum1 / d))
+        term2 = -np.exp(sum2 / d)
     
+        return term1 + term2 + a + np.exp(1)
+        
     def rastrigin(self,params):
         sum = 0
         for p in params:
@@ -107,21 +134,27 @@ class Function:
     def schwefel(self, x):
         return 418.9829 * len(x) - np.sum(x * np.sin(np.sqrt(np.abs(x))))
 
+    def levy(self, params):
+        params = np.array(params)
+        d = len(params)
         
+        # Compute w_i values
+        w = 1 + (params - 1) / 4  # Using the formula for w_i
 
-
-    def levy(self,params):
-        x = params[0]
-        y = params[1]
-        return np.sin(3*np.pi*x)**2 + (x-1)**2*(1 + np.sin(3*np.pi*y)**2) + (y-1)**2*(1 + np.sin(2*np.pi*y)**2)
+        # Calculate the Levy function
+        term1 = np.sin(np.pi * w[0])**2
+        sum_term = np.sum((w[:-1] - 1)**2 * (1 + 10 * np.sin(np.pi * w[:-1] + 1)**2))
+        term2 = (w[-1] - 1)**2 * (1 + np.sin(2 * np.pi * w[-1])**2)
+        return term1 + sum_term + term2
     
-    def michalewicz(self, params, m=10):
+    def michalewicz(self, params):
         sum_part = 0
-        for i in range(len(params)):
-            sum_part += np.sin(params[i]) * (np.sin(((i + 1) * params[i]**2) / np.pi))**(2 * m)
+        d = len(params)
+        for i in range(d):
+            xi = params[i]
+            sum_part += np.sin(xi) * (np.sin(((i + 1) * xi**2) / np.pi))**(2 * 10)
         return -sum_part
 
-  
     def zakharov(self,params):
         sum1 = 0
         sum2 = 0
@@ -129,4 +162,3 @@ class Function:
             sum1 += params[i]**2
             sum2 += 0.5*(i+1)*params[i]
         return sum1 + sum2**2 + sum2**4
-
