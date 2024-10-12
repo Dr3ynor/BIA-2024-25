@@ -1,6 +1,6 @@
 import numpy as np
 import plotly.graph_objects as go
-import time
+
 class Function:
     def __init__(self,name):
         self.name = name
@@ -74,7 +74,7 @@ class Function:
         while iterations < max_iter:
             neighbors = self.generate_neighbors(params, step)
             
-            # Input Domain Check: Filter neighbors that fall outside the search range
+            # "Clipnutí" hodnot do rozsahu definičního oboru dle stránek
             neighbors = [np.clip(neighbor, search_range[0], search_range[1]) for neighbor in neighbors]
             
             improved = False
@@ -88,7 +88,7 @@ class Function:
                     improved = True
             
             if not improved:
-                # Stop if there's no significant improvement
+                # Pokud nedošlo k velkému zlepšení, ukončí se vyhledávání
                 if abs(best_value - func(params)) < tolerance:
                     break
             
@@ -146,9 +146,6 @@ class Function:
             )
             fig.show()
 
-
-
-
     # Blind search - náhodné hledání nejlepších parametrů
     def blind_search(self,search_range, iterations, func):
         best_param = None
@@ -158,7 +155,7 @@ class Function:
         all_params = []
         all_values = []
         
-        for i in range(iterations):
+        for _ in range(iterations):
             params = np.random.uniform(search_range[0], search_range[1], 2)
             value = func(params)
             all_params.append(params)
