@@ -5,41 +5,30 @@ class Function:
     def __init__(self,name):
         self.name = name
         print(f"Function: {self.name}")
-
-    def get_function_choice():
-        print("Available functions:\n1. Sphere\n2. Ackley\n3. Rastrigin\n4. Rosenbrock\n5. Griewank\n6. Schwefel\n7. Levy\n8. Michalewicz\n9. Zakharov\n")
-        while True:
-            try:
-                function_number = int(input("Select Function:"))
-                if function_number not in range(1, 10):
-                    raise ValueError("Invalid function number")
-                return function_number
-            except ValueError as e:
-                print(f"Error: {e}")
-
+    # Zobrazení gridu (bez funkce a bez vyhodnocení)
     def init_grid(self,precision,range):
         x = np.linspace(range[0], range[1],precision)
         y = np.linspace(range[0], range[1], precision)
         x, y = np.meshgrid(x, y)
         z = np.zeros_like(x)
         return x, y, z
-
+    # Vyhodnocení gridu
     def evaluate_grid(self, x, y, z, func):
         for i in range(x.shape[0]):
             for j in range(x.shape[1]):
                 z[i, j] = func([x[i, j], y[i, j]])
         return z
-
+    # Vykreslení funkce, pokud jsou zadány nejlepší parametry a hodnoty, tak je zobrazí
     def plot_function(self, x, y, z, best_params=None, best_values=None):
         fig = go.Figure()
-        # Plot the surface of the function
+        # Vykreslí povrch funkce
         fig.add_trace(go.Surface(z=z, x=x, y=y, colorscale='Viridis', opacity=0.8))
         
-        # Plot red points
+        # Pokud jsou funkci předány i body, tak je zobrazí
         if best_params is not None and best_values is not None:
             best_params = np.array(best_params)
             
-            # Plot the search points as red dots at the correct Z value
+            # Vykreslí červeně "historicky nejlepší" body, žlutě nejlepší bod 
             for i in range(len(best_values)):
                 z_val = best_values[i]
                 if i == len(best_values)-1:
@@ -71,6 +60,7 @@ class Function:
         )
         fig.show()
 
+    # Blind search - náhodné hledání nejlepších parametrů
     def blind_search(self,search_range, iterations, func):
         best_param = None
         best_params = []
@@ -138,10 +128,8 @@ class Function:
         params = np.array(params)
         d = len(params)
         
-        # Compute w_i values
-        w = 1 + (params - 1) / 4  # Using the formula for w_i
+        w = 1 + (params - 1) / 4 #w_i
 
-        # Calculate the Levy function
         term1 = np.sin(np.pi * w[0])**2
         sum_term = np.sum((w[:-1] - 1)**2 * (1 + 10 * np.sin(np.pi * w[:-1] + 1)**2))
         term2 = (w[-1] - 1)**2 * (1 + np.sin(2 * np.pi * w[-1])**2)

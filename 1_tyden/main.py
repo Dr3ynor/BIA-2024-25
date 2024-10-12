@@ -1,6 +1,7 @@
 from function import Function
 from constants import constants
 
+# Výběr funkce, která se bude zobrazovat
 def get_function_choice():
     print("Available functions:\n1. Sphere\n2. Ackley\n3. Rastrigin\n4. Rosenbrock\n5. Griewank\n6. Schwefel\n7. Levy\n8. Michalewicz\n9. Zakharov\n")
     while True:
@@ -12,6 +13,7 @@ def get_function_choice():
         except ValueError as e:
             print(f"Error: {e}")
 
+# Hlavní funkce - uživatel vybere, kterou funkci chce zobrazit, provede se náhodné hledání nejlepších parametrů a zobrazí se graf do té doby, než uživatel zvolí ukončení
 def main():
     while True:
         function_number = get_function_choice()
