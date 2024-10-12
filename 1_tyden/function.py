@@ -63,41 +63,88 @@ class Function:
         )
         fig.show()
 
-    def hill_climbing(self, search_range, step, func, tolerance=1):
-            params = np.random.uniform(search_range[0], search_range[1], 2)
-            best_value = func(params)
-            best_params = params
-            best_params_list = [params]
-            best_values_list = [best_value]
+    def hill_climbing(self, search_range, step, func, max_iter=1000, tolerance=1e-6):
+        params = np.random.uniform(search_range[0], search_range[1], 2)
+        best_value = func(params)
+        best_params = params
+        best_params_list = [params]
+        best_values_list = [best_value]
+        
+        iterations = 0
+        while iterations < max_iter:
+            neighbors = self.generate_neighbors(params, step)
             
-            while True:
-                neighbors = self.generate_neighbors(params, step)
-                improved = False
-                for neighbor in neighbors:
-                    value = func(neighbor)
-                    if value < best_value:
-                        best_value = value
-                        best_params = neighbor
-                        best_params_list.append(neighbor)
-                        best_values_list.append(value)
-                        improved = True
-                
-                if not improved or np.abs(func(params) - best_value) < tolerance:
+            # Input Domain Check: Filter neighbors that fall outside the search range
+            neighbors = [np.clip(neighbor, search_range[0], search_range[1]) for neighbor in neighbors]
+            
+            improved = False
+            for neighbor in neighbors:
+                value = func(neighbor)
+                if value > best_value:  # maximum
+                    best_value = value
+                    best_params = neighbor
+                    best_params_list.append(neighbor)
+                    best_values_list.append(value)
+                    improved = True
+            
+            if not improved:
+                # Stop if there's no significant improvement
+                if abs(best_value - func(params)) < tolerance:
                     break
-                
-                params = best_params
             
-            print(f"Best value: {best_value}\n\nBest parameters: {best_params}\n\n\n")
-            return best_params_list, best_values_list
+            params = best_params
+            iterations += 1
+        
+        print(f"Best value: {best_value}\nBest parameters: {best_params}\n")
+        return best_params_list, best_values_list
+
+
 
     def generate_neighbors(self, params, step):
-        neighbors = []
-        for i in range(len(params)):
-            for delta in [-step, step]:
-                neighbor = np.copy(params)
-                neighbor[i] += delta
-                neighbors.append(neighbor)
-        return neighbors
+            neighbors = []
+            for i in range(len(params)):
+                for delta in [-step, step]:
+                    neighbor = np.copy(params)
+                    neighbor[i] += delta
+                    neighbors.append(neighbor)
+            return neighbors
+
+    def plot_neighbors(self, best_params_list, best_values_list, neighbors):
+            fig = go.Figure()
+            
+            # Plot the best points found during hill climbing
+            best_params_list = np.array(best_params_list)
+            best_values_list = np.array(best_values_list)
+            fig.add_trace(go.Scatter3d(
+                x=best_params_list[:, 0], 
+                y=best_params_list[:, 1], 
+                z=best_values_list, 
+                mode='markers+lines',
+                marker=dict(size=5, color='blue'),
+                name='Best Points'
+            ))
+            
+            # Plot the neighbors
+            neighbors = np.array(neighbors)
+            neighbor_values = [self.sphere(neighbor) for neighbor in neighbors]  # Assuming sphere function for visualization
+            fig.add_trace(go.Scatter3d(
+                x=neighbors[:, 0], 
+                y=neighbors[:, 1], 
+                z=neighbor_values, 
+                mode='markers',
+                marker=dict(size=5, color='green'),
+                name='Neighbors'
+            ))
+            
+            fig.update_layout(
+                scene=dict(
+                    xaxis_title='X',
+                    yaxis_title='Y',
+                    zaxis_title='Function Value'
+                ),
+                title='Hill Climbing Neighbors Visualization'
+            )
+            fig.show()
 
 
 

@@ -2,7 +2,7 @@ import numpy as np
 class constants:
     PRECISION = 50
     ITERATIONS = 1000
-    STEP = 0.1
+    STEP = 0.2
 
     SPHERE_RANGE = [-5.12, 5.12]
     ACKLEY_RANGE = [-30, 30]

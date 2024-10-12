@@ -48,10 +48,8 @@ def main():
             best_params, best_values = function.hill_climbing(search_range, constants.STEP, function_to_evaluate)
         
         function.plot_function(x, y, z, best_params, best_values)
-
         if input("Do you want to continue? (y/n): ") == 'n':
             break
 
 if __name__ == '__main__':
     main()
-    
