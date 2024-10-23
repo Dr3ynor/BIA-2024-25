@@ -67,8 +67,9 @@ class Function:
         return np.random.uniform(search_range[0], search_range[1], 2)
 
 
-    def generate_neighbor(self, params):
-        return params + np.random.normal(0, 1, size=params.shape)
+    def generate_neighbor(self, params, search_range):
+        neighbor = params + np.random.normal(0, 1, size=params.shape)
+        return np.clip(neighbor, search_range[0], search_range[1])
 
     def simulated_annealing(self, search_range, func, alpha=0.9, T_0=1000, T_min=1e-6):
         best_param = None
@@ -92,7 +93,7 @@ class Function:
 
         while T > T_min:
             # Generate neighbor solution
-            neighbor_param = self.generate_neighbor(current_param)
+            neighbor_param = self.generate_neighbor(current_param,search_range)
             neighbor_value = func(neighbor_param)
 
             # Collect all params and values
