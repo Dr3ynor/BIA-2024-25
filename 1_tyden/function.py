@@ -31,7 +31,7 @@ class Function:
         if best_params is not None and best_values is not None:
             best_params = np.array(best_params)
             
-            # Vykreslí červeně "historicky nejlepší" body, žlutě nejlepší bod 
+            # Vykreslí červeně "historicky nejlepší" body, modře nejlepší bod 
             for i in range(len(best_values)):
                 z_val = best_values[i]
                 if i == len(best_values)-1:
@@ -63,49 +63,64 @@ class Function:
         )
         fig.show()
 
-    def simulated_annealing(self, search_range, step, func):
-        # Setting control parameters
-        T_0 = 100  # Initial temperature
-        T_min = 0.5  # Minimum temperature
-        alpha = 0.95  # Cooling factor
+    def generate_initial_solution(self, search_range):
+        return np.random.uniform(search_range[0], search_range[1], 2)
 
-        # Generation of initial solution
-        params = np.random.uniform(search_range[0], search_range[1], 2)
-        best_value = func(params).sum()  # Ensure it's a scalar value
-        best_params = params
-        best_params_list = [params]
-        best_values_list = [best_value]
 
-        # Set initial temperature
+    def generate_neighbor(self, params):
+        return params + np.random.normal(0, 1, size=params.shape)
+
+    def simulated_annealing(self, search_range, func, alpha=0.9, T_0=1000, T_min=1e-6):
+        best_param = None
+        best_params = []
+        best_value = np.inf
+        best_values = []
+        all_params = []
+        all_values = []
+
+        # Initial temperature
         T = T_0
 
-        # Main loop
+        # Generate initial solution
+        current_param = self.generate_initial_solution(search_range)
+        current_value = func(current_param)
+
+        best_param = current_param
+        best_value = current_value
+        best_params.append(best_param)
+        best_values.append(best_value)
+
         while T > T_min:
-            # Generate neighbor of current solution
-            neighbor = self.generate_neighbors(params, step)
-            neighbor = np.clip(neighbor, search_range[0], search_range[1])
-            neighbor_value = func(neighbor).sum()  # Ensure it's a scalar value
+            # Generate neighbor solution
+            neighbor_param = self.generate_neighbor(current_param)
+            neighbor_value = func(neighbor_param)
 
-            # Evaluate the neighbor solution
-            if neighbor_value < best_value:
-                best_value = neighbor_value
-                best_params = neighbor
+            # Collect all params and values
+            all_params.append(neighbor_param)
+            all_values.append(neighbor_value)
+
+            if neighbor_value < current_value:
+                current_param = neighbor_param
+                current_value = neighbor_value
             else:
-                # Random acceptance based on temperature and difference
-                r = np.random.rand()
-                if r < np.exp(-(neighbor_value - best_value) / T):
-                    best_value = neighbor_value
-                    best_params = neighbor
+                r = np.random.uniform(0, 1)
+                if r < np.exp(-(neighbor_value - current_value) / T):
+                    current_param = neighbor_param
+                    current_value = neighbor_value
 
-            # Update temperature
+            # Update best parameters and values
+            if current_value < best_value:
+                best_value = current_value
+                best_param = current_param
+                best_params.append(best_param)
+                best_values.append(best_value)
+
+            # Decrease temperature
             T *= alpha
 
-            # Store the best solutions found
-            best_params_list.append(best_params)
-            best_values_list.append(best_value)
+        print(f"Best value: {best_value}\nBest parameters: {best_param}\n")
+        return best_params, best_values
 
-        print(f"Best value: {best_value}\nBest parameters: {best_params}\n")
-        return best_params_list, best_values_list
 
     def hill_climbing(self, search_range, step, func, max_iter=1000, tolerance=1e-6):
         params = np.random.uniform(search_range[0], search_range[1], 2)

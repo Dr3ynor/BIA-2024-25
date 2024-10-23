@@ -39,7 +39,7 @@ def main():
         elif algorithm_choice == 2:
             best_params, best_values = function.hill_climbing(search_range, constants.STEP, function_to_evaluate)
         elif algorithm_choice == 3:
-            best_params, best_values = function.simulated_annealing(search_range, constants.STEP, function_to_evaluate)
+            best_params, best_values = function.simulated_annealing(search_range,function_to_evaluate)
         function.plot_function(x, y, z, best_params, best_values)
         
         if input("Do you want to continue? (y/n): ").lower() == 'n':
