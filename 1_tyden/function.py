@@ -63,6 +63,50 @@ class Function:
         )
         fig.show()
 
+    def simulated_annealing(self, search_range, step, func):
+        # Setting control parameters
+        T_0 = 100  # Initial temperature
+        T_min = 0.5  # Minimum temperature
+        alpha = 0.95  # Cooling factor
+
+        # Generation of initial solution
+        params = np.random.uniform(search_range[0], search_range[1], 2)
+        best_value = func(params).sum()  # Ensure it's a scalar value
+        best_params = params
+        best_params_list = [params]
+        best_values_list = [best_value]
+
+        # Set initial temperature
+        T = T_0
+
+        # Main loop
+        while T > T_min:
+            # Generate neighbor of current solution
+            neighbor = self.generate_neighbors(params, step)
+            neighbor = np.clip(neighbor, search_range[0], search_range[1])
+            neighbor_value = func(neighbor).sum()  # Ensure it's a scalar value
+
+            # Evaluate the neighbor solution
+            if neighbor_value < best_value:
+                best_value = neighbor_value
+                best_params = neighbor
+            else:
+                # Random acceptance based on temperature and difference
+                r = np.random.rand()
+                if r < np.exp(-(neighbor_value - best_value) / T):
+                    best_value = neighbor_value
+                    best_params = neighbor
+
+            # Update temperature
+            T *= alpha
+
+            # Store the best solutions found
+            best_params_list.append(best_params)
+            best_values_list.append(best_value)
+
+        print(f"Best value: {best_value}\nBest parameters: {best_params}\n")
+        return best_params_list, best_values_list
+
     def hill_climbing(self, search_range, step, func, max_iter=1000, tolerance=1e-6):
         params = np.random.uniform(search_range[0], search_range[1], 2)
         best_value = func(params)
@@ -74,13 +118,13 @@ class Function:
         while iterations < max_iter:
             neighbors = self.generate_neighbors(params, step)
             
-            # "Clipnutí" hodnot do rozsahu definičního oboru dle stránek
+            # "Clipnutí" hodnot do rozsahu definičního oboru
             neighbors = [np.clip(neighbor, search_range[0], search_range[1]) for neighbor in neighbors]
             
             improved = False
             for neighbor in neighbors:
                 value = func(neighbor)
-                if value > best_value:  # maximum
+                if value < best_value:
                     best_value = value
                     best_params = neighbor
                     best_params_list.append(neighbor)
@@ -112,7 +156,6 @@ class Function:
     def plot_neighbors(self, best_params_list, best_values_list, neighbors):
             fig = go.Figure()
             
-            # Plot the best points found during hill climbing
             best_params_list = np.array(best_params_list)
             best_values_list = np.array(best_values_list)
             fig.add_trace(go.Scatter3d(
@@ -124,9 +167,8 @@ class Function:
                 name='Best Points'
             ))
             
-            # Plot the neighbors
             neighbors = np.array(neighbors)
-            neighbor_values = [self.sphere(neighbor) for neighbor in neighbors]  # Assuming sphere function for visualization
+            neighbor_values = [self.sphere(neighbor) for neighbor in neighbors]
             fig.add_trace(go.Scatter3d(
                 x=neighbors[:, 0], 
                 y=neighbors[:, 1], 
@@ -142,7 +184,7 @@ class Function:
                     yaxis_title='Y',
                     zaxis_title='Function Value'
                 ),
-                title='Hill Climbing Neighbors Visualization'
+                title='Neighbors Visualization'
             )
             fig.show()
 

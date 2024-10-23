@@ -19,7 +19,7 @@ def main():
         "Sphere", "Ackley", "Rastrigin", "Rosenbrock", "Griewank",
         "Schwefel", "Levy", "Michalewicz", "Zakharov"
     ]
-    algorithm_choices = ["Blind Search", "Hill Climbing"]
+    algorithm_choices = ["Blind Search", "Hill Climbing","Simulated Annealing"]
 
     while True:
         function_number = get_choice("Available functions:", function_choices)
@@ -38,7 +38,8 @@ def main():
             best_params, best_values = function.blind_search(search_range, constants.ITERATIONS, function_to_evaluate)
         elif algorithm_choice == 2:
             best_params, best_values = function.hill_climbing(search_range, constants.STEP, function_to_evaluate)
-        
+        elif algorithm_choice == 3:
+            best_params, best_values = function.simulated_annealing(search_range, constants.STEP, function_to_evaluate)
         function.plot_function(x, y, z, best_params, best_values)
         
         if input("Do you want to continue? (y/n): ").lower() == 'n':
