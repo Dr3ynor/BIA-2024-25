@@ -66,7 +66,6 @@ class Function:
     def generate_initial_solution(self, search_range):
         return np.random.uniform(search_range[0], search_range[1], 2)
 
-
     def generate_neighbor(self, params, search_range):
         neighbor = params + np.random.normal(0, 1, size=params.shape)
         return np.clip(neighbor, search_range[0], search_range[1])
@@ -79,44 +78,49 @@ class Function:
         all_params = []
         all_values = []
 
-        # Initial temperature
+        # Počáteční teplota
         T = T_0
 
-        # Generate initial solution
+        # Vygenerování počátečního řešení
         current_param = self.generate_initial_solution(search_range)
         current_value = func(current_param)
-
+        
+        # Přidání do seznamu všech parametrů a hodnot
         best_param = current_param
         best_value = current_value
         best_params.append(best_param)
         best_values.append(best_value)
-
+        
+        # While cyklus pro simulované žíhání
         while T > T_min:
-            # Generate neighbor solution
+            # Vygenerování souseda
             neighbor_param = self.generate_neighbor(current_param,search_range)
             neighbor_value = func(neighbor_param)
 
-            # Collect all params and values
+            # zaznamenání všech parametrů a hodnot
             all_params.append(neighbor_param)
             all_values.append(neighbor_value)
 
+            # Přijetí nebo odmítnutí nového řešení
             if neighbor_value < current_value:
                 current_param = neighbor_param
                 current_value = neighbor_value
             else:
+                # Odmítnutí nového řešení s pravděpodobností
                 r = np.random.uniform(0, 1)
+                # Pokud je pravděpodobnost menší než exp(-deltaE/T), tak se nové řešení přijme
                 if r < np.exp(-(neighbor_value - current_value) / T):
                     current_param = neighbor_param
                     current_value = neighbor_value
 
-            # Update best parameters and values
+            # Aktualizace nejlepšího řešení
             if current_value < best_value:
                 best_value = current_value
                 best_param = current_param
                 best_params.append(best_param)
                 best_values.append(best_value)
 
-            # Decrease temperature
+            # Snížení teploty
             T *= alpha
 
         print(f"Best value: {best_value}\nBest parameters: {best_param}\n")
