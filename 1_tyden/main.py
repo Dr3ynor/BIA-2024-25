@@ -1,5 +1,8 @@
 from function import Function
 from constants import constants
+import numpy as np
+
+import plotly.graph_objects as go
 
 def get_choice(prompt, choices):
     print(prompt)
@@ -41,7 +44,7 @@ def main():
         elif algorithm_choice == 3:
             best_params, best_values = function.simulated_annealing(search_range,function_to_evaluate)
         function.plot_function(x, y, z, best_params, best_values)
-        
+
         if input("Do you want to continue? (y/n): ").lower() == 'n':
             break
 
