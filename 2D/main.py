@@ -3,12 +3,13 @@ import matplotlib.pyplot as plt
 import random
 
 # Parameters
-NP = 20                # Population size
-G = 300                # Number of generations
-D = 10                 # Number of cities
-
+NP = 25            # Moderate population size for exploration
+G = 20_000            # Sufficient generations for convergence
+D = 20             # Fixed number of cities
+MUTATION_RATE = 0.5  # 50% mutation probability
+RANGE = 200
 # Generate random cities (coordinates in a 2D plane)
-cities = np.random.rand(D, 2) * 100
+cities = np.random.rand(D, 2) * RANGE
 starting_city = 0  # Fixed starting city (e.g., the first city)
 
 # Function to calculate the total distance of a route
@@ -56,6 +57,12 @@ def genetic_algorithm():
     best_route = None
     best_distance = float("inf")
 
+    plt.ion()  # Turn on interactive mode
+    fig, ax = plt.subplots()
+    scatter = ax.scatter(cities[:, 0], cities[:, 1], color="red")
+    line, = ax.plot([], [], "b-", linewidth=1)
+    plt.title("Genetic Algorithm TSP")
+
     for generation in range(G):
         new_population = []
 
@@ -65,8 +72,8 @@ def genetic_algorithm():
 
             offspring = crossover(parent_A, parent_B)
 
-            # Mutate with a probability of 50%
-            if random.random() < 0.5:
+            # Mutate with a probability of MUTATION RATE (%)
+            if random.random() < MUTATION_RATE:
                 offspring = mutate(offspring)
 
             # Replace if offspring is better
@@ -84,13 +91,13 @@ def genetic_algorithm():
             best_route = population[0]
 
         # Visualization update
-        plt.clf()
-        plt.scatter(cities[:, 0], cities[:, 1], color="red")
         route_coords = cities[best_route + [best_route[0]]]  # Return to start
-        plt.plot(route_coords[:, 0], route_coords[:, 1], "b-", linewidth=1)
-        plt.title(f"Generation: {generation + 1}, Distance: {best_distance:.2f}")
-        plt.pause(0.01)
+        line.set_data(route_coords[:, 0], route_coords[:, 1])
+        ax.set_title(f"Generation: {generation + 1}, Distance: {best_distance:.2f}")
+        plt.draw()
+        plt.pause(0.0000000000001)
 
+    plt.ioff()  # Turn off interactive mode
     plt.show()
     return best_route, best_distance
 
