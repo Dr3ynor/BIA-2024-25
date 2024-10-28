@@ -4,7 +4,7 @@ import random
 
 # Parameters
 NP = 25            # Moderate population size for exploration
-G = 20_000            # Sufficient generations for convergence
+G = 500            # Sufficient generations for convergence
 D = 20             # Fixed number of cities
 MUTATION_RATE = 0.5  # 50% mutation probability
 RANGE = 200
@@ -56,14 +56,16 @@ def genetic_algorithm():
     population = generate_population()
     best_route = None
     best_distance = float("inf")
+    best_routes_history = []
 
-    plt.ion()  # Turn on interactive mode
     fig, ax = plt.subplots()
     scatter = ax.scatter(cities[:, 0], cities[:, 1], color="red")
     line, = ax.plot([], [], "b-", linewidth=1)
     plt.title("Genetic Algorithm TSP")
 
     for generation in range(G):
+        if generation % 100 == 0:
+            print(f"Generation: {generation + 1}/{G}")
         new_population = []
 
         for i in range(NP):
@@ -89,17 +91,18 @@ def genetic_algorithm():
         if current_best_distance < best_distance:
             best_distance = current_best_distance
             best_route = population[0]
+            best_routes_history.append((best_route, best_distance))
 
-        # Visualization update
-        route_coords = cities[best_route + [best_route[0]]]  # Return to start
-        line.set_data(route_coords[:, 0], route_coords[:, 1])
-        ax.set_title(f"Generation: {generation + 1}, Distance: {best_distance:.2f}")
-        plt.draw()
-        plt.pause(0.0000000000001)
+    for i, (route, distance) in enumerate(best_routes_history):
+        print(f"Route {i + 1}: {route}, Distance: {distance}")
+        line.set_xdata(np.append(cities[route, 0], cities[route[0], 0]))
+        line.set_ydata(np.append(cities[route, 1], cities[route[0], 1]))
+        plt.pause(0.5)
 
-    plt.ioff()  # Turn off interactive mode
-    plt.show()
+    plt.show()  # Keep the plot open until the user closes it
+
     return best_route, best_distance
+
 
 # Run the genetic algorithm and plot the best solution
 best_route, best_distance = genetic_algorithm()
