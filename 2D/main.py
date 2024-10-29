@@ -2,10 +2,18 @@ import numpy as np
 import matplotlib.pyplot as plt
 import random
 
+#NP 7
+#D 20
+# G 12_000
+
+#NP = 5
+# D = 15
+# G = 10_000
+
 # Parameters
-NP = 25            # Moderate population size for exploration
-G = 500            # Sufficient generations for convergence
-D = 20             # Fixed number of cities
+NP = 7           # Moderate population size for exploration
+G = 12_000            # Sufficient generations for convergence
+D = 20           # Fixed number of cities
 MUTATION_RATE = 0.5  # 50% mutation probability
 RANGE = 200
 # Generate random cities (coordinates in a 2D plane)
@@ -70,7 +78,12 @@ def genetic_algorithm():
 
         for i in range(NP):
             parent_A = population[i]
-            parent_B = random.choice([p for p in population if p != parent_A])
+            # Try to find a parent_B different from parent_A, fallback to parent_A if not possible
+            potential_parents = [p for p in population if p != parent_A]
+            if potential_parents:
+                parent_B = random.choice(potential_parents)
+            else:
+                parent_B = parent_A
 
             offspring = crossover(parent_A, parent_B)
 
@@ -93,11 +106,13 @@ def genetic_algorithm():
             best_route = population[0]
             best_routes_history.append((best_route, best_distance))
 
+    input("Press Enter...")
     for i, (route, distance) in enumerate(best_routes_history):
         print(f"Route {i + 1}: {route}, Distance: {distance}")
         line.set_xdata(np.append(cities[route, 0], cities[route[0], 0]))
         line.set_ydata(np.append(cities[route, 1], cities[route[0], 1]))
-        plt.pause(0.5)
+        plt.pause(0.25)
+
 
     plt.show()  # Keep the plot open until the user closes it
 
