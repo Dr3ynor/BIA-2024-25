@@ -45,7 +45,7 @@ def main():
             best_params, best_values = function.simulated_annealing(search_range,function_to_evaluate)
         elif algorithm_choice == 4:
         # (self, func, dimension, lower_bound, upper_bound, population_size=50, generations=1000, F=0.8, CR=0.9):
-            best_params, best_values = function.differential_evolution(function_to_evaluate,dimension=3,lower_bound=search_range[0],upper_bound=search_range[1],population_size=50,generations=1000,F=0.8,CR=0.9)
+            best_params, best_values = function.differential_evolution(function_to_evaluate,dimension=3,lower_bound=search_range[0],upper_bound=search_range[1],population_size=50,generations=300,F=0.8,CR=0.9)
             # print(f"\n\nBest parameters: {best_params} | Best value: {best_values}\n\n")
             print(f"\n\nBest value:\n\n")
             for i in range(len(best_values)):
