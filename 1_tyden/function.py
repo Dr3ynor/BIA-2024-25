@@ -63,6 +63,60 @@ class Function:
         )
         fig.show()
 
+
+    # (self, search_range, func, alpha=0.9, T_0=1000, T_min=1e-6):
+    def differential_evolution(self, func, dimension, lower_bound, upper_bound, population_size=50, generations=1000, F=0.8, CR=0.9):
+        # Initialize the population
+        pop = [np.random.uniform(lower_bound, upper_bound, dimension) for _ in range(population_size)]
+        best_solutions = []
+        best_values = []
+
+        # Evaluate initial population
+        fitness = [func(ind) for ind in pop]
+        best_idx = np.argmin(fitness)
+        best_solutions.append(pop[best_idx])
+        best_values.append(fitness[best_idx])
+
+        # Main DE loop
+        for g in range(generations):
+            new_pop = []
+
+            for i in range(population_size):
+                # Mutation: Select r1, r2, r3 (distinct indices)
+                indices = [idx for idx in range(population_size) if idx != i]
+                r1, r2, r3 = np.random.choice(indices, 3, replace=False)
+                mutant = pop[r1] + F * (pop[r2] - pop[r3])
+                mutant = np.clip(mutant, lower_bound, upper_bound)
+
+                # Crossover
+                trial = np.array([mutant[j] if np.random.rand() < CR else pop[i][j] for j in range(dimension)])
+                
+                # Evaluate trial vector
+                trial_fitness = func(trial)
+                if trial_fitness <= fitness[i]:  # Accept if trial is better or equal
+                    new_pop.append(trial)
+                    fitness[i] = trial_fitness
+                else:
+                    new_pop.append(pop[i])  # Keep original vector
+
+            pop = new_pop
+
+            # Find best solution in this generation
+            best_idx = np.argmin(fitness)
+            best_solutions.append(pop[best_idx])
+            best_values.append(fitness[best_idx])
+
+            # Optionally print or log progress here
+
+        # Return best solutions and values over generations
+
+        print(f"Best value: {best_values[-1]}\nBest parameters: {best_solutions[-1]}\n")
+        return best_solutions, best_values
+
+
+
+
+
     def generate_initial_solution(self, search_range):
         return np.random.uniform(search_range[0], search_range[1], 2)
 
