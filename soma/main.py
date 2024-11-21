@@ -49,6 +49,8 @@ def zakharov(params):
     sum2 = sum(0.5 * (i + 1) * p for i, p in enumerate(params))
     return sum1 + sum2**2 + sum2**4
 
+# Add other functions if needed
+
 benchmark_functions = {
     "1": (sphere, [-5.12, 5.12]),
     "2": (ackley, [-30, 30]),
@@ -61,80 +63,81 @@ benchmark_functions = {
     "9": (zakharov, [-5, 5])
 }
 
-def run_pso(benchmark_function, bounds):
-    # PSO Parametry
+def run_soma(benchmark_function, bounds):
+    # SOMA Parameters
     num_particles = 30
     dimensions = 2
     iterations = 50
-    inertia_weight = 0.5 # setrvačnost
-    cognitive_coeff = 1.5 # k nejlepší svoji pozici
-    social_coeff = 2.0 # k nejlepší pozici celé skupiny
+    prt = 0.4
+    step = 0.11
+    path_length = 3
 
-    # Počáteční částice
+    # Initialize particles
     positions = np.random.uniform(bounds[0], bounds[1], (num_particles, dimensions))
-    velocities = np.random.uniform(-1, 1, (num_particles, dimensions))
-    personal_best_positions = np.copy(positions)
-    personal_best_scores = np.array([benchmark_function(pos) for pos in positions])
-    global_best_position = personal_best_positions[np.argmin(personal_best_scores)]
-    global_best_score = np.min(personal_best_scores)
+    fitness = [benchmark_function(pos) for pos in positions]
+    leader = positions[np.argmin(fitness)]
+    leader_fitness = np.min(fitness)
 
-    def particle_swarm():
-        nonlocal positions, velocities, personal_best_positions, personal_best_scores, global_best_position, global_best_score
+    # Record positions for animation
+    results = [positions.copy()]
+
+    # Function to perform one SOMA iteration
+    def soma_step():
+        nonlocal positions, leader, leader_fitness
+        new_positions = positions.copy()
         for i in range(num_particles):
-            inertia = inertia_weight * velocities[i]
-            cognitive = cognitive_coeff * np.random.rand() * (personal_best_positions[i] - positions[i])
-            social = social_coeff * np.random.rand() * (global_best_position - positions[i])
-            velocities[i] = inertia + cognitive + social
-            positions[i] += velocities[i]
-            positions[i] = np.clip(positions[i], bounds[0], bounds[1])
-            score = benchmark_function(positions[i])
-            if score < personal_best_scores[i]:
-                personal_best_scores[i] = score
-                personal_best_positions[i] = positions[i]
-        best_particle = np.argmin(personal_best_scores)
-        if personal_best_scores[best_particle] < global_best_score:
-            global_best_score = personal_best_scores[best_particle]
-            global_best_position = personal_best_positions[best_particle]
+            if np.array_equal(leader, positions[i]):
+                continue
+            best_pos = positions[i]
+            for t in np.arange(0, path_length + step, step):
+                r = np.random.uniform(0, 1, dimensions) < prt
+                candidate = positions[i] + t * r * (leader - positions[i])
+                candidate = np.clip(candidate, bounds[0], bounds[1])
+                if benchmark_function(candidate) < benchmark_function(best_pos):
+                    best_pos = candidate
+            new_positions[i] = best_pos
+        positions = new_positions
+        fitness[:] = [benchmark_function(pos) for pos in positions]
+        leader = positions[np.argmin(fitness)]
+        leader_fitness = np.min(fitness)
+        results.append(positions.copy())
 
+    # Create grid for surface plot
     x = np.linspace(bounds[0], bounds[1], 100)
     y = np.linspace(bounds[0], bounds[1], 100)
     X, Y = np.meshgrid(x, y)
     Z = np.array([benchmark_function([xi, yi]) for xi, yi in zip(X.flatten(), Y.flatten())]).reshape(X.shape)
 
+    # Plotting setup
     fig = plt.figure()
     ax = fig.add_subplot(111, projection='3d')
+    ax.plot_surface(X, Y, Z, rstride=1, cstride=1, alpha=0.7, cmap='viridis', edgecolor='none')
     ax.set_xlim(bounds[0], bounds[1])
     ax.set_ylim(bounds[0], bounds[1])
-    # For Michalewicz, dynamically adjust zlim to zoom in on the important range
-    if benchmark_function == michalewicz:
-        ax.set_zlim(-1, 1)
-    else:
-        ax.set_zlim(0, np.max(Z) * 1.1)
-    ax.plot_surface(X, Y, Z, rstride=1, cstride=1, alpha=0.7, cmap='viridis', edgecolor='none')
+    ax.set_zlim(Z.min(), Z.max())
 
-    particles, = ax.plot([], [], [], 'bo', ms=5)
+    particles, = ax.plot([], [], [], 'ro', markersize=5)
 
     # Update function for animation
-    def animate(i):
-        particle_swarm()
-        particles.set_data(positions[:, 0], positions[:, 1])
-        particles.set_3d_properties([benchmark_function(pos) for pos in positions])
+    def animate(frame):
+        soma_step()
+        current_positions = results[frame]
+        particles.set_data(current_positions[:, 0], current_positions[:, 1])
+        particles.set_3d_properties([benchmark_function(pos) for pos in current_positions])
         return particles,
 
-    # Run the animation
-    ani = animation.FuncAnimation(fig, animate, frames=iterations, interval=100, blit=True)
+    ani = animation.FuncAnimation(fig, animate, frames=iterations, interval=200, blit=False)
     plt.show()
 
 # Main loop
 while True:
-    # Prompt the user to select a function
     print("\nSelect a benchmark function:")
     for key, (func, _) in benchmark_functions.items():
         print(f"{key}: {func.__name__}")
     print("0: Exit")
 
     selected_function_name = input("Enter a number (1-9 or 0 to exit): ").strip()
-    
+
     if selected_function_name == "0":
         print("Exiting.")
         break
@@ -142,8 +145,5 @@ while True:
         print("Invalid selection. Try again.")
         continue
 
-    # Get the selected function and its range
     benchmark_function, bounds = benchmark_functions[selected_function_name]
-    
-    # Run PSO with the selected function
-    run_pso(benchmark_function, bounds)
+    run_soma(benchmark_function, bounds)
