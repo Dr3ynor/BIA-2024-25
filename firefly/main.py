@@ -3,17 +3,14 @@ import matplotlib.pyplot as plt
 from matplotlib import animation
 from mpl_toolkits.mplot3d import Axes3D
 
-
-NUM_FIREFLIES = 20
+NUM_FIREFLIES = 30
 NUM_GENERATIONS = 100
-ALPHA = 0.5
-BETA = 0.2
-GAMMA = 1.0
-DELTA_T = 0.1
+ALPHA = 0.5  # Randomization coefficient
+BETA = 1.0  # Attraction coefficient
+GAMMA = 0.6  # Absorption coefficient
+DELTA_T = 0.95
 
 
-
-# Define benchmark functions
 def sphere(params):
     return sum(p**2 for p in params)
 
@@ -59,8 +56,6 @@ def zakharov(params):
     sum2 = sum(0.5 * (i + 1) * p for i, p in enumerate(params))
     return sum1 + sum2**2 + sum2**4
 
-# Add other functions if needed
-
 benchmark_functions = {
     "1": (sphere, [-5.12, 5.12]),
     "2": (ackley, [-30, 30]),
@@ -73,16 +68,70 @@ benchmark_functions = {
     "9": (zakharov, [-5, 5])
 }
 
-# Define the Firefly Algorithm
-def run_firefly():
-    pass
+def firefly_algorithm(func, bounds, num_fireflies=NUM_FIREFLIES, num_generations=NUM_GENERATIONS):
+    dim = len(bounds)
+    fireflies = np.random.uniform(bounds[0], bounds[1], (num_fireflies, dim))
+    brightness = np.array([func(f) for f in fireflies])
 
+    all_positions = [fireflies.copy()]
 
+    for _ in range(num_generations):
+        for i in range(num_fireflies):
+            for j in range(num_fireflies):
+                if brightness[i] > brightness[j]:  # Firefly j is brighter
+                    r = np.linalg.norm(fireflies[i] - fireflies[j])
+                    beta = BETA * np.exp(-GAMMA * r**2)
+                    fireflies[i] += beta * (fireflies[j] - fireflies[i]) + ALPHA * np.random.uniform(-1, 1, dim)
+                    fireflies[i] = np.clip(fireflies[i], bounds[0], bounds[1])
 
+        brightness = np.array([func(f) for f in fireflies])
+        all_positions.append(fireflies.copy())
 
+    best_index = np.argmin(brightness)
+    return fireflies[best_index], brightness[best_index], all_positions
 
+def visualize_firefly(func, bounds, all_positions):
+    fig = plt.figure()
+    ax = fig.add_subplot(111, projection='3d')
 
-# Main loop
+    x = np.linspace(bounds[0], bounds[1], 100)
+    y = np.linspace(bounds[0], bounds[1], 100)
+    X, Y = np.meshgrid(x, y)
+    Z = np.array([func([x, y]) for x, y in zip(X.ravel(), Y.ravel())]).reshape(X.shape)
+
+    ax.plot_surface(X, Y, Z, cmap='viridis', alpha=0.6)
+
+    firefly_positions = all_positions[0]
+    scatter = ax.scatter(firefly_positions[:, 0], firefly_positions[:, 1],
+                         [func(pos) for pos in firefly_positions], c='red', s=30)
+
+    lines = [ax.plot([], [], [], 'yellow', alpha=0.6)[0] for _ in range(len(all_positions[0]))]
+
+    def update(frame):
+        firefly_positions = all_positions[frame]
+        
+        scatter._offsets3d = (
+            firefly_positions[:, 0],
+            firefly_positions[:, 1],
+            [func(pos) for pos in firefly_positions]
+        )
+        
+        for line, traj in zip(lines, range(len(firefly_positions))):
+            trajectory = np.array([pos[traj] for pos in all_positions[:frame + 1]])
+            line.set_data(trajectory[:, 0], trajectory[:, 1])
+            line.set_3d_properties([func(pos) for pos in trajectory])
+        
+        return scatter, *lines
+
+    ani = animation.FuncAnimation(fig, update, frames=len(all_positions), interval=1, blit=False)
+    plt.show()
+
+def run_firefly(func, bounds):
+    best_position, best_value, all_positions = firefly_algorithm(func, bounds)
+    print(f"Best Position: {best_position}\nBest Value: {best_value}")
+    print(f"all_positions: {len(all_positions)}")
+    visualize_firefly(func, bounds, all_positions)
+
 while True:
     print("\nSelect a benchmark function:")
     for key, (func, _) in benchmark_functions.items():
