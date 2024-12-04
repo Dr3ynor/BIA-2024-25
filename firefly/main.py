@@ -3,13 +3,12 @@ import matplotlib.pyplot as plt
 from matplotlib import animation
 from mpl_toolkits.mplot3d import Axes3D
 
-NUM_FIREFLIES = 30
-NUM_GENERATIONS = 100
-ALPHA = 0.5  # Randomization coefficient
-BETA = 1.0  # Attraction coefficient
-GAMMA = 0.6  # Absorption coefficient
-DELTA_T = 0.95
-
+LIGHT_ABSORPTION_COEFFICIENT = 2
+NUM_GENERATIONS = 50
+NUM_FIREFLIES = 50
+DIMENSIONS = 2
+ATTRACTIVNESS = 1
+RANDOMNESS_SCALING_PARAMETER = 0.3
 
 def sphere(params):
     return sum(p**2 for p in params)
@@ -68,27 +67,49 @@ benchmark_functions = {
     "9": (zakharov, [-5, 5])
 }
 
+
+def calculate_light_intensity(value: float, firefly, target_firefly):
+    return value * np.pow(np.e, -LIGHT_ABSORPTION_COEFFICIENT * np.linalg.norm(firefly - target_firefly))
+
+def calculate_attractiveness(firefly, target_firefly):
+    return ATTRACTIVNESS / (1 + np.linalg.norm(firefly - target_firefly))
+
+def move_towards_target(firefly, target_firefly):
+    firefly += calculate_attractiveness(firefly, target_firefly) * (target_firefly - firefly)
+    firefly += RANDOMNESS_SCALING_PARAMETER * np.random.normal(size=2)
+
+
 def firefly_algorithm(func, bounds, num_fireflies=NUM_FIREFLIES, num_generations=NUM_GENERATIONS):
     dim = len(bounds)
-    fireflies = np.random.uniform(bounds[0], bounds[1], (num_fireflies, dim))
-    brightness = np.array([func(f) for f in fireflies])
+    population = np.random.uniform(bounds[0], bounds[1], (num_fireflies, dim))
+    best_solution = None
+    best_value = float('inf')
+    all_solutions = []
+    all_values = []
+    for _ in range(NUM_GENERATIONS):
+        current_solutions = []
+        current_values = []
+        for current_firefly in population:
+            value = func(current_firefly)
+            for target_firefly in population:
+                if current_firefly is target_firefly:
+                    continue
 
-    all_positions = [fireflies.copy()]
-
-    for _ in range(num_generations):
-        for i in range(num_fireflies):
-            for j in range(num_fireflies):
-                if brightness[i] > brightness[j]:  # Firefly j is brighter
-                    r = np.linalg.norm(fireflies[i] - fireflies[j])
-                    beta = BETA * np.exp(-GAMMA * r**2)
-                    fireflies[i] += beta * (fireflies[j] - fireflies[i]) + ALPHA * np.random.uniform(-1, 1, dim)
-                    fireflies[i] = np.clip(fireflies[i], bounds[0], bounds[1])
-
-        brightness = np.array([func(f) for f in fireflies])
-        all_positions.append(fireflies.copy())
-
-    best_index = np.argmin(brightness)
-    return fireflies[best_index], brightness[best_index], all_positions
+                current_firefly_light_intensity = calculate_light_intensity(value, current_firefly, target_firefly)
+                target_firefly_light_intensity = calculate_light_intensity(func(target_firefly), current_firefly, target_firefly)
+                if target_firefly_light_intensity < current_firefly_light_intensity:
+                    move_towards_target(current_firefly, target_firefly)
+                value = func(current_firefly)
+            current_values.append(value)
+            current_solutions.append(np.copy(current_firefly))
+        
+        all_solutions.append(np.vstack(current_solutions))
+        all_values.append(current_values)
+        min_idx = np.argmin(current_values)
+        if current_values[min_idx] < best_value:
+            best_value = current_values[min_idx]
+            best_solution = current_solutions[min_idx]
+    return best_solution, best_value, all_solutions
 
 def visualize_firefly(func, bounds, all_positions):
     fig = plt.figure()
@@ -104,9 +125,6 @@ def visualize_firefly(func, bounds, all_positions):
     firefly_positions = all_positions[0]
     scatter = ax.scatter(firefly_positions[:, 0], firefly_positions[:, 1],
                          [func(pos) for pos in firefly_positions], c='red', s=30)
-
-    lines = [ax.plot([], [], [], 'yellow', alpha=0.6)[0] for _ in range(len(all_positions[0]))]
-
     def update(frame):
         firefly_positions = all_positions[frame]
         
@@ -115,21 +133,17 @@ def visualize_firefly(func, bounds, all_positions):
             firefly_positions[:, 1],
             [func(pos) for pos in firefly_positions]
         )
-        
-        for line, traj in zip(lines, range(len(firefly_positions))):
-            trajectory = np.array([pos[traj] for pos in all_positions[:frame + 1]])
-            line.set_data(trajectory[:, 0], trajectory[:, 1])
-            line.set_3d_properties([func(pos) for pos in trajectory])
-        
-        return scatter, *lines
 
-    ani = animation.FuncAnimation(fig, update, frames=len(all_positions), interval=1, blit=False)
+        
+        return scatter
+
+    ani = animation.FuncAnimation(fig, update, frames=len(all_positions), interval=50, blit=False)
     plt.show()
 
 def run_firefly(func, bounds):
     best_position, best_value, all_positions = firefly_algorithm(func, bounds)
     print(f"Best Position: {best_position}\nBest Value: {best_value}")
-    print(f"all_positions: {len(all_positions)}")
+    input("Press Enter...")
     visualize_firefly(func, bounds, all_positions)
 
 while True:
