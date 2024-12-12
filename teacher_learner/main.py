@@ -5,7 +5,7 @@ from mpl_toolkits.mplot3d import Axes3D
 
 
 num_individuals= 50
-dim = 2
+dim = 30
 num_generations = 100
 
 
@@ -23,8 +23,9 @@ def rastrigin(params):
     return sum(p**2 - 10 * np.cos(2 * np.pi * p) + 10 for p in params)
 
 def rosenbrock(params):
-    x, y = params
-    return (1 - x)**2 + 100 * (y - x**2)**2
+    x = params[0]
+    y = params[1]
+    return (1-x)**2 + 100*(y-x**2)**2
 
 def griewank(params):
     sum_part = sum(p**2 for p in params) / 4000
@@ -68,9 +69,11 @@ benchmark_functions = {
 
 
 def teacher_learner_algorithm(func, bounds):
+    num_of_iterations = 0
+    MAX_ITERATIONS = 3000
     population = np.random.uniform(bounds[0], bounds[1], (num_individuals, dim))
     fitness = np.array([func(ind) for ind in population])
-
+    num_of_iterations = num_of_iterations + num_individuals
     best_value = np.min(fitness)
     best_position = population[np.argmin(fitness)]
     all_positions = [population.copy()]
@@ -85,6 +88,9 @@ def teacher_learner_algorithm(func, bounds):
         new_population = np.clip(new_population, bounds[0], bounds[1]) # Clipnutí hodnot, které přesahují hranice definičního oboru
 
         new_fitness = np.array([func(ind) for ind in new_population]) # Ohodnocení nových pozic
+        num_of_iterations = num_of_iterations + new_population.shape[0]
+        if num_of_iterations >= MAX_ITERATIONS:
+            return best_position, best_value, all_positions
         improved = new_fitness < fitness # Zjistíme, které nové pozice jsou lepší než ty původní (studenti, kteří se zlepšili)
         population[improved] = new_population[improved] # Pokud se student zlepšil, jeho pozice se změní
         fitness[improved] = new_fitness[improved] # Pokud se student zlepšil, jeho fitness se změní
@@ -99,6 +105,9 @@ def teacher_learner_algorithm(func, bounds):
                 new_ind = population[i] + np.random.uniform(size=dim) * (population[partner] - population[i])
             new_ind = np.clip(new_ind, bounds[0], bounds[1])
             new_fitness = func(new_ind)
+            num_of_iterations = num_of_iterations + 1
+            if num_of_iterations >= MAX_ITERATIONS:
+                return best_position, best_value, all_positions
             if new_fitness < fitness[i]:
                 population[i] = new_ind
                 fitness[i] = new_fitness
@@ -161,5 +170,8 @@ while True:
         continue
 
     benchmark_function, bounds = benchmark_functions[selected_function_name]
-    run_teacher_learner(benchmark_function, bounds)
+    # run_teacher_learner(benchmark_function, bounds)
 
+    for i in range(30):
+        best_position, best_value, all_positions = teacher_learner_algorithm(benchmark_function, bounds)
+        print(f"{best_value}")

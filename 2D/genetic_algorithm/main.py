@@ -13,14 +13,14 @@ import random
 
 #NP = 100
 #G = 1000
-#D = 20 
+#D = 20
 
 #NP = 7           # Moderate population size for exploration
 #G = 16_000            # Sufficient generations for convergence
 #D = 20
 # Parameters
-NP = 7          # Moderate population size for exploration
-G = 16_000            # Sufficient generations for convergence
+NP = 14          # Moderate population size for exploration
+G = 17_000            # Sufficient generations for convergence
 D = 20           # Fixed number of cities
 MUTATION_RATE = 0.66  # mutation probability
 RANGE = 200

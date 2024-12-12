@@ -10,7 +10,6 @@ PHEROMONE_IMPORTANCE = 1
 DISTANCE_IMPORTANCE = 2
 NUM_MIGRATIONS = 200
 VAPORIZATION_COEFFICIENT = 0.5
-Q = 1
 
 def generate_cities(count):
     return [np.random.uniform(low=0, high=200, size=2) for _ in range(count)]
@@ -140,7 +139,7 @@ for migration in range(NUM_MIGRATIONS):
         for i in range(len(solution) - 2):
             idx_1 = solution[i]
             idx_2 = solution[i + 1]
-            pheromone_matrix[idx_1, idx_2] += Q / current_distances[-1]
+            pheromone_matrix[idx_1, idx_2] += 1 / current_distances[-1]
 
     min_idx = np.argmin(current_distances)
     if current_distances[min_idx] < best_distance:

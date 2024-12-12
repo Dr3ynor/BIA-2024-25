@@ -18,8 +18,9 @@ def rastrigin(params):
     return sum(p**2 - 10 * np.cos(2 * np.pi * p) + 10 for p in params)
 
 def rosenbrock(params):
-    x, y = params
-    return (1 - x)**2 + 100 * (y - x**2)**2
+    x = params[0]
+    y = params[1]
+    return (1-x)**2 + 100*(y-x**2)**2
 
 def griewank(params):
     sum_part = sum(p**2 for p in params) / 4000
@@ -61,10 +62,13 @@ benchmark_functions = {
     "9": (zakharov, [-5, 5])
 }
 
-def run_pso(benchmark_function, bounds):
+
+def particle_swarm(benchmark_function, bounds):
+    MAX_EVALUATIONS = 3000
+    num_of_evaluations = 0
     # PSO Parametry
     num_particles = 30
-    dimensions = 2
+    dimensions = 30
     iterations = 50
     inertia_weight = 0.5 # setrvačnost
     cognitive_coeff = 1.5 # k nejlepší svoji pozici
@@ -75,27 +79,31 @@ def run_pso(benchmark_function, bounds):
     velocities = np.random.uniform(-1, 1, (num_particles, dimensions))
     personal_best_positions = np.copy(positions)
     personal_best_scores = np.array([benchmark_function(pos) for pos in positions])
+    num_of_evaluations += num_particles
     global_best_position = personal_best_positions[np.argmin(personal_best_scores)]
     global_best_score = np.min(personal_best_scores)
 
-    def particle_swarm():
-        nonlocal positions, velocities, personal_best_positions, personal_best_scores, global_best_position, global_best_score
-        for i in range(num_particles):
-            inertia = inertia_weight * velocities[i]
-            cognitive = cognitive_coeff * np.random.rand() * (personal_best_positions[i] - positions[i])
-            social = social_coeff * np.random.rand() * (global_best_position - positions[i])
-            velocities[i] = inertia + cognitive + social
-            positions[i] += velocities[i]
-            positions[i] = np.clip(positions[i], bounds[0], bounds[1])
-            score = benchmark_function(positions[i])
-            if score < personal_best_scores[i]:
-                personal_best_scores[i] = score
-                personal_best_positions[i] = positions[i]
-        best_particle = np.argmin(personal_best_scores)
-        if personal_best_scores[best_particle] < global_best_score:
-            global_best_score = personal_best_scores[best_particle]
-            global_best_position = personal_best_positions[best_particle]
-
+    # nonlocal positions, velocities, personal_best_positions, personal_best_scores, global_best_position, global_best_score
+    for i in range(num_particles):
+        inertia = inertia_weight * velocities[i]
+        cognitive = cognitive_coeff * np.random.rand() * (personal_best_positions[i] - positions[i])
+        social = social_coeff * np.random.rand() * (global_best_position - positions[i])
+        velocities[i] = inertia + cognitive + social
+        positions[i] += velocities[i]
+        positions[i] = np.clip(positions[i], bounds[0], bounds[1])
+        score = benchmark_function(positions[i])
+        num_of_evaluations = num_of_evaluations + 1
+        if num_of_evaluations >= MAX_EVALUATIONS:
+            return global_best_score
+        if score < personal_best_scores[i]:
+            personal_best_scores[i] = score
+            personal_best_positions[i] = positions[i]
+    best_particle = np.argmin(personal_best_scores)
+    if personal_best_scores[best_particle] < global_best_score:
+        global_best_score = personal_best_scores[best_particle]
+        global_best_position = personal_best_positions[best_particle]
+    return global_best_score
+"""
     x = np.linspace(bounds[0], bounds[1], 100)
     y = np.linspace(bounds[0], bounds[1], 100)
     X, Y = np.meshgrid(x, y)
@@ -124,7 +132,7 @@ def run_pso(benchmark_function, bounds):
     # Run the animation
     ani = animation.FuncAnimation(fig, animate, frames=iterations, interval=100, blit=True)
     plt.show()
-
+"""
 # Main loop
 while True:
     # Prompt the user to select a function
@@ -146,4 +154,5 @@ while True:
     benchmark_function, bounds = benchmark_functions[selected_function_name]
     
     # Run PSO with the selected function
-    run_pso(benchmark_function, bounds)
+    for i in range(30):
+        print(particle_swarm(benchmark_function, bounds))

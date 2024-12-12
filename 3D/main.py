@@ -25,7 +25,7 @@ def main():
         "Sphere", "Ackley", "Rastrigin", "Rosenbrock", "Griewank",
         "Schwefel", "Levy", "Michalewicz", "Zakharov"
     ]
-    algorithm_choices = ["Blind Search", "Hill Climbing","Simulated Annealing", "Differential Evolution","Particle Swarm"]
+    algorithm_choices = ["Blind Search", "Hill Climbing","Simulated Annealing", "Differential Evolution"]
 
     while True:
         function_number = get_choice("Available functions:", function_choices)
@@ -40,6 +40,7 @@ def main():
         function_to_evaluate = getattr(function, function_name.lower())
         z = function.evaluate_grid(x, y, z, function_to_evaluate)
 
+        """
         if algorithm_choice == 1:
             best_params, best_values = function.blind_search(search_range, constants.ITERATIONS, function_to_evaluate)
         elif algorithm_choice == 2:
@@ -48,13 +49,17 @@ def main():
             best_params, best_values = function.simulated_annealing(search_range,function_to_evaluate)
         elif algorithm_choice == 4:
         # (self, func, dimension, lower_bound, upper_bound, population_size=50, generations=1000, F=0.8, CR=0.9):
-            best_params, best_values = function.differential_evolution(function_to_evaluate,dimension=3,lower_bound=search_range[0],upper_bound=search_range[1],population_size=50,generations=300,F=0.8,CR=0.9)
+            best_params, best_values = function.differential_evolution(function_to_evaluate,dimension=30,lower_bound=search_range[0],upper_bound=search_range[1],population_size=50,generations=300,F=0.8,CR=0.9)
             # print(f"\n\nBest parameters: {best_params} | Best value: {best_values}\n\n")
-            print(f"\n\nBest value:\n\n")
-            for i in range(len(best_values)):
-                print(f"Best value {i+1}: {best_values[i]}")
+        """
 
-        function.plot_function(x, y, z, best_params, best_values)
+        for i in range(30):
+            best_params, best_values = function.differential_evolution(function_to_evaluate,dimension=30,lower_bound=search_range[0],upper_bound=search_range[1],population_size=50,generations=300,F=0.8,CR=0.9)
+            minimum = min(best_values)
+            print(f"{minimum}")
+
+
+        #function.plot_function(x, y, z, best_params, best_values)
         if input("Do you want to continue? (y/n): ").lower() == 'n':
             break
 

@@ -18,8 +18,9 @@ def rastrigin(params):
     return sum(p**2 - 10 * np.cos(2 * np.pi * p) + 10 for p in params)
 
 def rosenbrock(params):
-    x, y = params
-    return (1 - x)**2 + 100 * (y - x**2)**2
+    x = params[0]
+    y = params[1]
+    return (1-x)**2 + 100*(y-x**2)**2
 
 def griewank(params):
     sum_part = sum(p**2 for p in params) / 4000
@@ -64,9 +65,11 @@ benchmark_functions = {
 }
 
 def run_soma(benchmark_function, bounds):
+    MAX_EVALUATIONS = 3000
+    num_of_evaluations = 0
     # SOMA Parameters
     num_particles = 30
-    dimensions = 2
+    dimensions = 30
     iterations = 50
     prt = 0.4
     step = 0.11
@@ -75,33 +78,38 @@ def run_soma(benchmark_function, bounds):
     # Initialize particles
     positions = np.random.uniform(bounds[0], bounds[1], (num_particles, dimensions))
     fitness = [benchmark_function(pos) for pos in positions]
+    num_of_evaluations = num_of_evaluations + num_particles
     leader = positions[np.argmin(fitness)]
     leader_fitness = np.min(fitness)
 
     # Record positions for animation
     results = [positions.copy()]
 
-    # Function to perform one SOMA iteration
-    def soma_step():
-        nonlocal positions, leader, leader_fitness
-        new_positions = positions.copy()
-        for i in range(num_particles):
-            if np.array_equal(leader, positions[i]):
-                continue
-            best_pos = positions[i]
-            for t in np.arange(0, path_length + step, step):
-                r = np.random.uniform(0, 1, dimensions) < prt
-                candidate = positions[i] + t * r * (leader - positions[i])
-                candidate = np.clip(candidate, bounds[0], bounds[1])
-                if benchmark_function(candidate) < benchmark_function(best_pos):
-                    best_pos = candidate
-            new_positions[i] = best_pos
-        positions = new_positions
-        fitness[:] = [benchmark_function(pos) for pos in positions]
-        leader = positions[np.argmin(fitness)]
-        leader_fitness = np.min(fitness)
-        results.append(positions.copy())
-
+    new_positions = positions.copy()
+    for i in range(num_particles):
+        if np.array_equal(leader, positions[i]):
+            continue
+        best_pos = positions[i]
+        for t in np.arange(0, path_length + step, step):
+            r = np.random.uniform(0, 1, dimensions) < prt
+            candidate = positions[i] + t * r * (leader - positions[i])
+            candidate = np.clip(candidate, bounds[0], bounds[1])
+            if benchmark_function(candidate) < benchmark_function(best_pos):
+                best_pos = candidate
+            num_of_evaluations += 2
+            if num_of_evaluations >= MAX_EVALUATIONS:
+                return leader_fitness
+        new_positions[i] = best_pos
+    positions = new_positions
+    fitness[:] = [benchmark_function(pos) for pos in positions]
+    num_of_evaluations += num_particles
+    leader = positions[np.argmin(fitness)]
+    leader_fitness = np.min(fitness)
+    results.append(positions.copy())
+    if num_of_evaluations >= MAX_EVALUATIONS:
+        return leader_fitness
+    return leader_fitness
+"""
     # Create grid for surface plot
     x = np.linspace(bounds[0], bounds[1], 100)
     y = np.linspace(bounds[0], bounds[1], 100)
@@ -128,7 +136,7 @@ def run_soma(benchmark_function, bounds):
 
     ani = animation.FuncAnimation(fig, animate, frames=iterations, interval=200, blit=False)
     plt.show()
-
+"""
 # Main loop
 while True:
     print("\nSelect a benchmark function:")
@@ -146,4 +154,6 @@ while True:
         continue
 
     benchmark_function, bounds = benchmark_functions[selected_function_name]
-    run_soma(benchmark_function, bounds)
+    
+    for i in range(30):
+        print(run_soma(benchmark_function, bounds))

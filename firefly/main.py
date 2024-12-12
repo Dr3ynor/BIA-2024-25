@@ -5,8 +5,8 @@ from mpl_toolkits.mplot3d import Axes3D
 
 LIGHT_ABSORPTION_COEFFICIENT = 2
 NUM_GENERATIONS = 50
-NUM_FIREFLIES = 50
-DIMENSIONS = 2
+NUM_FIREFLIES = 25
+DIMENSIONS = 30
 ATTRACTIVNESS = 1
 RANDOMNESS_SCALING_PARAMETER = 0.3
 
@@ -24,8 +24,9 @@ def rastrigin(params):
     return sum(p**2 - 10 * np.cos(2 * np.pi * p) + 10 for p in params)
 
 def rosenbrock(params):
-    x, y = params
-    return (1 - x)**2 + 100 * (y - x**2)**2
+    x = params[0]
+    y = params[1]
+    return (1-x)**2 + 100*(y-x**2)**2
 
 def griewank(params):
     sum_part = sum(p**2 for p in params) / 4000
@@ -76,11 +77,14 @@ def calculate_attractiveness(firefly, target_firefly):
 
 def move_towards_target(firefly, target_firefly):
     firefly += calculate_attractiveness(firefly, target_firefly) * (target_firefly - firefly)
-    firefly += RANDOMNESS_SCALING_PARAMETER * np.random.normal(size=2)
-
+    firefly += RANDOMNESS_SCALING_PARAMETER * np.random.normal(size=DIMENSIONS)
+    firefly[:] = np.clip(firefly, bounds[0], bounds[1])
 
 def firefly_algorithm(func, bounds, num_fireflies=NUM_FIREFLIES, num_generations=NUM_GENERATIONS):
-    dim = len(bounds)
+    MAX_ITERATIONS = 3000
+    num_of_iterations = 0
+
+    dim = DIMENSIONS
     population = np.random.uniform(bounds[0], bounds[1], (num_fireflies, dim))
     best_solution = None
     best_value = float('inf')
@@ -91,15 +95,24 @@ def firefly_algorithm(func, bounds, num_fireflies=NUM_FIREFLIES, num_generations
         current_values = []
         for current_firefly in population:
             value = func(current_firefly)
+            num_of_iterations += 1
+            if num_of_iterations >= MAX_ITERATIONS:
+                return best_value
             for target_firefly in population:
                 if current_firefly is target_firefly:
                     continue
 
                 current_firefly_light_intensity = calculate_light_intensity(value, current_firefly, target_firefly)
                 target_firefly_light_intensity = calculate_light_intensity(func(target_firefly), current_firefly, target_firefly)
+                num_of_iterations += 1
+                if num_of_iterations >= MAX_ITERATIONS:
+                    return best_value
                 if target_firefly_light_intensity < current_firefly_light_intensity:
                     move_towards_target(current_firefly, target_firefly)
                 value = func(current_firefly)
+                num_of_iterations += 1
+                if num_of_iterations >= MAX_ITERATIONS:
+                    return best_value
             current_values.append(value)
             current_solutions.append(np.copy(current_firefly))
         
@@ -109,7 +122,7 @@ def firefly_algorithm(func, bounds, num_fireflies=NUM_FIREFLIES, num_generations
         if current_values[min_idx] < best_value:
             best_value = current_values[min_idx]
             best_solution = current_solutions[min_idx]
-    return best_solution, best_value, all_solutions
+    return best_value
 
 def visualize_firefly(func, bounds, all_positions):
     fig = plt.figure()
@@ -162,4 +175,7 @@ while True:
         continue
 
     benchmark_function, bounds = benchmark_functions[selected_function_name]
-    run_firefly(benchmark_function, bounds)
+    
+    for i in range(30):
+        best_value = firefly_algorithm(benchmark_function, bounds)
+        print(f"{best_value}")
